@@ -1,0 +1,62 @@
+package main;
+
+import model.Room;
+import model.Booking;
+import service.HotelService;
+
+import java.util.List;
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        HotelService service = new HotelService();
+        Scanner scanner = new Scanner(System.in);
+        int choice;
+
+        do {
+            System.out.println("\n==== HOTEL BOOKING SYSTEM ====");
+            System.out.println("1. View available rooms");
+            System.out.println("2. Book a room");
+            System.out.println("3. Cancel booking");
+            System.out.println("4. View all bookings");
+            System.out.println("0. Exit");
+            System.out.print("Enter your choice: ");
+            choice = scanner.nextInt(); scanner.nextLine();
+
+            switch (choice) {
+                case 1 -> {
+                    System.out.print("Enter category (Standard, Deluxe, Suite): ");
+                    String category = scanner.nextLine();
+                    List<Room> available = service.viewAvailableRooms(category);
+                    if (available.isEmpty()) {
+                        System.out.println("No available rooms in this category.");
+                    } else {
+                        available.forEach(System.out::println);
+                    }
+                }
+                case 2 -> {
+                    System.out.print("Your name: ");
+                    String name = scanner.nextLine();
+                    System.out.print("Room category: ");
+                    String category = scanner.nextLine();
+                    Booking booking = service.bookRoom(name, category);
+                    if (booking != null) {
+                        System.out.println("Booking successful!\n" + booking);
+                    } else {
+                        System.out.println("No rooms available in that category.");
+                    }
+                }
+                case 3 -> {
+                    System.out.print("Enter your name to cancel booking: ");
+                    String name = scanner.nextLine();
+                    boolean success = service.cancelBooking(name);
+                    System.out.println(success ? "Booking cancelled." : "No booking found.");
+                }
+                case 4 -> service.viewAllBookings();
+                case 0 -> System.out.println("Thank you for using the system.");
+                default -> System.out.println("Invalid option.");
+            }
+
+        } while (choice != 0);
+    }
+}
