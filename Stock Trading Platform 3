@@ -1,0 +1,58 @@
+package service;
+
+import model.Stock;
+import java.util.*;
+
+public class Market {
+    private final Map<String, Stock> stocks = new HashMap<>();
+    private final Random random = new Random();
+
+    // ---------- Constructor loads some demo stocks ----------
+    public Market() {
+        add(new Stock("AAPL", "Apple Inc.",     150.00));
+        add(new Stock("GOOGL","Alphabet Inc.",  130.00));
+        add(new Stock("AMZN", "Amazon.com Inc.",115.00));
+        add(new Stock("TSLA", "Tesla Inc.",     250.00));
+    }
+    private void add(Stock s) { stocks.put(s.getSymbol(), s); }
+
+    // ---------- Simulate daily price movement (+/-5%) ----------
+    public void nextDay() {
+        for (Stock s : stocks.values()) {
+            double pct   = (random.nextDouble() - 0.5) * 0.10; // -5% .. +5%
+            double newPx = s.getPrice() * (1 + pct);
+            s.updatePrice(Math.round(newPx * 100) / 100.0);    // round to cents
+        }
+    }
+
+    // ------ getters ------
+    public Map<String, Stock> getMarketMap() { return stocks; }
+    public Collection<Stock> getAll() { return stocks.values(); }
+    public Stock get(String symbol)   { return stocks.get(symbol.toUpperCase()); }
+}
+
+
+
+
+
+package service;
+
+import model.Portfolio;
+import java.io.*;
+
+public class PortfolioManager {
+
+    public static void save(Portfolio p, String file) throws IOException {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+            out.writeObject(p);
+        }
+    }
+
+    public static Portfolio load(String file) {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
+            return (Portfolio) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            return null;   // file not found = start new portfolio
+        }
+    }
+}
