@@ -1,0 +1,105 @@
+package service;
+
+import model.Booking;
+import model.Room;
+
+import java.io.*;
+import java.util.*;
+
+public class HotelService {
+    private List<Room> rooms = new ArrayList<>();
+    private List<Booking> bookings = new ArrayList<>();
+    private final String FILE_NAME = "bookings.txt";
+
+    public HotelService() {
+        loadRooms();
+        loadBookings();
+    }
+
+    private void loadRooms() {
+        rooms.add(new Room(101, "Standard"));
+        rooms.add(new Room(102, "Standard"));
+        rooms.add(new Room(201, "Deluxe"));
+        rooms.add(new Room(202, "Deluxe"));
+        rooms.add(new Room(301, "Suite"));
+    }
+
+    public List<Room> viewAvailableRooms(String category) {
+        List<Room> available = new ArrayList<>();
+        for (Room room : rooms) {
+            if (!room.isBooked() && room.getCategory().equalsIgnoreCase(category)) {
+                available.add(room);
+            }
+        }
+        return available;
+    }
+
+    public Booking bookRoom(String user, String category) {
+        for (Room room : rooms) {
+            if (!room.isBooked() && room.getCategory().equalsIgnoreCase(category)) {
+                room.setBooked(true);
+                Booking booking = new Booking(user, room, "Paid");
+                bookings.add(booking);
+                saveBookingToFile(booking);
+                return booking;
+            }
+        }
+        return null;
+    }
+
+    public boolean cancelBooking(String userName) {
+        Iterator<Booking> iterator = bookings.iterator();
+        while (iterator.hasNext()) {
+            Booking booking = iterator.next();
+            if (booking.getUserName().equalsIgnoreCase(userName)) {
+                booking.getRoom().setBooked(false);
+                iterator.remove();
+                saveAllBookings(); // refresh file
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void viewAllBookings() {
+        if (bookings.isEmpty()) {
+            System.out.println("No bookings found.");
+            return;
+        }
+        for (Booking b : bookings) {
+            System.out.println(b);
+        }
+    }
+
+    private void saveBookingToFile(Booking booking) {
+        try (FileWriter writer = new FileWriter(FILE_NAME, true)) {
+            writer.write(booking.toString() + "\n");
+        } catch (IOException e) {
+            System.out.println("Error saving booking.");
+        }
+    }
+
+    private void saveAllBookings() {
+        try (FileWriter writer = new FileWriter(FILE_NAME)) {
+            for (Booking b : bookings) {
+                writer.write(b.toString() + "\n");
+            }
+        } catch (IOException e) {
+            System.out.println("Error writing bookings.");
+        }
+    }
+
+    private void loadBookings() {
+        File file = new File(FILE_NAME);
+        if (!file.exists()) return;
+        try (BufferedReader br = new BufferedReader(new FileReader(FILE_NAME))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                // Simplified loading (not restoring full object structure)
+                System.out.println("Previous: " + line);
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading saved bookings.");
+        }
+    }
+}
