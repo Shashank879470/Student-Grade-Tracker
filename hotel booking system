@@ -1,0 +1,31 @@
+package model;
+
+public class Booking {
+    private String userName;
+    private Room room;
+    private String paymentStatus;
+
+    public Booking(String userName, Room room, String paymentStatus) {
+        this.userName = userName;
+        this.room = room;
+        this.paymentStatus = paymentStatus;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public Room getRoom() {
+        return room;
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    @Override
+    public String toString() {
+        return "Booking by " + userName + " for Room " + room.getRoomNumber()
+               + " (" + room.getCategory() + ") | Payment: " + paymentStatus;
+    }
+}
