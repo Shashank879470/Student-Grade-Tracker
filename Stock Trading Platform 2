@@ -1,0 +1,109 @@
+package model;
+
+import java.io.Serializable;
+import java.util.*;
+
+public class Portfolio implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private double cash;
+    private final Map<String, Integer> holdings = new HashMap<>();
+    private final List<Transaction> history    = new ArrayList<>();
+
+    public Portfolio(double initialCash) { this.cash = initialCash; }
+
+    // ---------- BUY ----------
+    public boolean buy(Stock stock, int qty) {
+        double cost = stock.getPrice() * qty;
+        if (cost > cash) return false;          // not enough cash
+        cash -= cost;
+        holdings.merge(stock.getSymbol(), qty, Integer::sum);
+        history.add(new Transaction(Transaction.Type.BUY,
+                                    stock.getSymbol(), qty, stock.getPrice()));
+        return true;
+    }
+
+    // ---------- SELL ----------
+    public boolean sell(Stock stock, int qty) {
+        int held = holdings.getOrDefault(stock.getSymbol(), 0);
+        if (qty > held) return false;           // not enough shares
+        holdings.put(stock.getSymbol(), held - qty);
+        cash += stock.getPrice() * qty;
+        history.add(new Transaction(Transaction.Type.SELL,
+                                    stock.getSymbol(), qty, stock.getPrice()));
+        return true;
+    }
+
+    // ---------- Portfolio value ----------
+    public double currentValue(Map<String, Stock> market) {
+        double value = cash;
+        for (Map.Entry<String, Integer> e : holdings.entrySet()) {
+            Stock s = market.get(e.getKey());
+            if (s != null) value += s.getPrice() * e.getValue();
+        }
+        return value;
+    }
+
+    // ------ getters ------
+    public double getCash() { return cash; }
+    public Map<String, Integer> getHoldings() { return Collections.unmodifiableMap(holdings); }
+    public List<Transaction> getHistory()    { return Collections.unmodifiableList(history); }
+}
+
+
+
+package model;
+
+import java.io.Serializable;
+
+public class Stock implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private final String symbol;
+    private final String name;
+    private double price;          // current market price
+
+    public Stock(String symbol, String name, double price) {
+        this.symbol = symbol;
+        this.name   = name;
+        this.price  = price;
+    }
+    // ------ getters ------
+    public String getSymbol() { return symbol; }
+    public String getName()   { return name;   }
+    public double getPrice()  { return price;  }
+
+    // simulate price update
+    public void updatePrice(double newPrice) { this.price = newPrice; }
+}
+
+
+
+package model;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
+public class Transaction implements Serializable {
+    private static final long serialVersionUID = 1L;
+    public enum Type { BUY, SELL }
+
+    private final Type type;
+    private final String symbol;
+    private final int quantity;
+    private final double price;          // execution price
+    private final LocalDateTime time;
+
+    public Transaction(Type type, String symbol, int quantity, double price) {
+        this.type     = type;
+        this.symbol   = symbol;
+        this.quantity = quantity;
+        this.price    = price;
+        this.time     = LocalDateTime.now();
+    }
+    // ------ getters ------
+    public Type getType()       { return type;     }
+    public String getSymbol()   { return symbol;   }
+    public int getQuantity()    { return quantity; }
+    public double getPrice()    { return price;    }
+    public LocalDateTime getTime() { return time;  }
+}
